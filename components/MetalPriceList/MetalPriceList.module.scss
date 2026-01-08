@@ -1,0 +1,51 @@
+.wrapper {
+    background: #000;
+    border-radius: 18px;
+    padding: 10px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding:10px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 215, 0, 0.25);
+
+
+}
+
+.metalName {
+    color: #f5c84c;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.prices {
+    display: flex;
+    gap: 32px;
+}
+
+.priceBlock {
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+}
+
+.label {
+    font-size: 11px;
+    color: #ffffff;
+    opacity: 0.8;
+    margin-bottom: 5px;
+}
+
+.value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #f5c84c;
+}
