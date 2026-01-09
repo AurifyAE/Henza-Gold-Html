@@ -212,7 +212,7 @@ const MainScreen = () => {
           <CommodityPriceCard />
         </div>
 
-        <div className={styles.table_sec}>
+        <div className={styles.commodity_sec}>
           <MetalPriceList
             commodities={commodities}
             getMetalName={getMetalName}
