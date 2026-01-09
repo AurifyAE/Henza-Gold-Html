@@ -10,6 +10,10 @@
         border: none;
         object-fit: contain;
     }
+
+    :global(.ytp-title-enable-channel-logo .ytp-title) {
+        display: none !important;
+    }
 }
 
 /* ================= IFRAME ================= */
