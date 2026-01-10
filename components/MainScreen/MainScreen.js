@@ -237,7 +237,7 @@ const MainScreen = () => {
       </div>
 
       <div className={styles.video_sec}>
-        <video src="/videos/background.mp4" autoPlay muted loop />
+        <video src="/videos/background.mp4" autoPlay muted loop playsInline />
       </div>
     </div>
   );
