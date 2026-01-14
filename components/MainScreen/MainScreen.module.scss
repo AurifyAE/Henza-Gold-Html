@@ -6,7 +6,7 @@
     margin: auto;
     overflow: hidden;
     position: relative;
-    padding: 20px;
+    padding: clamp(1rem, 1.5vw, 1.5rem);
 }
 
 .video_sec {
@@ -25,14 +25,13 @@
 }
 
 .mainscreen_body {
-    //  height: 100%;
     width: 100%;
     position: relative;
     z-index: 1;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    gap: 10px;
+    gap: clamp(0.5rem, 0.8vw, 1rem);
     height: 100%;
 }
 
@@ -44,15 +43,17 @@
     align-items: center;
     justify-content: center;
     background-color: black;
-    padding: 25px;
+    padding: clamp(1rem, 2vw, 1.75rem);
 
     img {
         object-fit: contain;
+        width: clamp(3rem, 8vw, 6.25rem);
+        height: auto;
     }
 }
 
 .table_sec {
-    width: calc(100% - 30% - 10px);
+    width: calc(100% - 30% - clamp(0.5rem, 0.8vw, 1rem));
     height: fit-content;
 }
 
@@ -71,11 +72,15 @@
 }
 
 .youtube_sec {
-
-    height: 300px;
+    height: clamp(8rem, 18vw, 250px);
     width: 50%;
 }
 
 .sponsor_logo {
     width: 35%;
+
+    img {
+        width: 100%;
+        height: auto;
+    }
 }

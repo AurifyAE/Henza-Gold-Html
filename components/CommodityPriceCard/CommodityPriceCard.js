@@ -7,6 +7,7 @@ import io from 'socket.io-client';
 
 import { fetchSpotRates, fetchServerURL } from '@/pages/api/api';
 import { useSpotRate } from '@/context/SpotRateContext';
+import { getSocketTransports, isTVBrowser } from '@/utils/browserDetection';
 
 const CommodityPriceCard = () => {
 
@@ -52,23 +53,38 @@ const CommodityPriceCard = () => {
   // ============================================================================
   useEffect(() => {
     const loadInitialData = async () => {
-      try {
-        const [spotRes, serverRes] = await Promise.all([
-          fetchSpotRates(adminId),
-          fetchServerURL(),
-        ]);
+      let retryCount = 0;
+      const maxRetries = isTVBrowser() ? 5 : 3;
+      const retryDelay = isTVBrowser() ? 2000 : 1000;
 
-        const info = spotRes.data.info;
+      const attemptLoad = async () => {
+        try {
+          const [spotRes, serverRes] = await Promise.all([
+            fetchSpotRates(adminId),
+            fetchServerURL(),
+          ]);
 
-        setCommodities(info.commodities || []);
-        setGoldBidSpread(info.goldBidSpread || 0);
-        setGoldAskSpread(info.goldAskSpread || 0);
-        setSilverBidSpread(info.silverBidSpread || 0);
-        setSilverAskSpread(info.silverAskSpread || 0);
-        setServerURL(serverRes.data.info.serverURL);
-      } catch (err) {
-        console.error('Failed to load initial data', err);
-      }
+          const info = spotRes.data.info;
+
+          setCommodities(info.commodities || []);
+          setGoldBidSpread(info.goldBidSpread || 0);
+          setGoldAskSpread(info.goldAskSpread || 0);
+          setSilverBidSpread(info.silverBidSpread || 0);
+          setSilverAskSpread(info.silverAskSpread || 0);
+          setServerURL(serverRes.data.info.serverURL);
+        } catch (err) {
+          console.error(`Failed to load initial data (attempt ${retryCount + 1}/${maxRetries})`, err);
+          
+          if (retryCount < maxRetries) {
+            retryCount++;
+            setTimeout(attemptLoad, retryDelay);
+          } else {
+            console.error('Max retries reached. Failed to load initial data.');
+          }
+        }
+      };
+
+      attemptLoad();
     };
 
     loadInitialData();
@@ -80,21 +96,58 @@ const CommodityPriceCard = () => {
   useEffect(() => {
     if (!serverURL) return;
 
+    const transports = getSocketTransports();
+    const isTV = isTVBrowser();
+
     const socket = io(serverURL, {
       query: { secret: process.env.NEXT_PUBLIC_SOCKET_SECRET_KEY },
-      transports: ['websocket'],
+      transports: transports,
       withCredentials: true,
+      // TV browsers may need longer timeouts
+      timeout: isTV ? 20000 : 10000,
+      reconnection: true,
+      reconnectionDelay: isTV ? 2000 : 1000,
+      reconnectionDelayMax: isTV ? 10000 : 5000,
+      reconnectionAttempts: isTV ? 10 : 5,
+      forceNew: false,
     });
 
     socket.on('connect', () => {
+      console.log('Socket connected with transport:', socket.io.engine.transport.name);
       socket.emit('request-data', ['GOLD', 'SILVER']);
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+      // For TV browsers, try to reconnect with polling only
+      if (isTV && socket.io.engine?.transport?.name !== 'polling') {
+        socket.io.opts.transports = ['polling'];
+        socket.disconnect();
+        socket.connect();
+      }
     });
 
     socket.on('market-data', (data) => {
       setMarketData((prev) => ({ ...prev, [data.symbol]: data }));
     });
 
-    return () => socket.disconnect();
+    socket.on('disconnect', (reason) => {
+      console.log('Socket disconnected:', reason);
+    });
+
+    socket.on('reconnect', (attemptNumber) => {
+      console.log('Socket reconnected after', attemptNumber, 'attempts');
+      socket.emit('request-data', ['GOLD', 'SILVER']);
+    });
+
+    return () => {
+      socket.off('connect');
+      socket.off('connect_error');
+      socket.off('market-data');
+      socket.off('disconnect');
+      socket.off('reconnect');
+      socket.disconnect();
+    };
   }, [serverURL]);
 
   // ============================================================================

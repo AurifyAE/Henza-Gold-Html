@@ -105,22 +105,54 @@ h6 {
 }
 
 p {
-  font-size: 16px;
+  font-size: clamp(0.875rem, 0.8rem + 0.3vw, 1.125rem);
   line-height: 1.5;
   margin: 0;
-  margin-bottom: 20px;
+  margin-bottom: clamp(1rem, 0.8rem + 0.5vw, 1.5rem);
 }
 
 
-@media (max-width:1366px) {
+/* Responsive base font size using clamp for fluid scaling */
+html {
+  /* Base: 16px, scales from 10px (min) to 24px (max) based on viewport width */
+  font-size: clamp(0.625rem, 0.5rem + 1vw, 1.5rem);
+}
+
+/* Fine-tune for different screen sizes */
+@media (max-width: 768px) {
   html {
-    font-size: 50%;
+    font-size: clamp(0.5rem, 0.4rem + 0.8vw, 0.875rem);
   }
 }
 
-@media (min-width: 2000px) {
-
+@media (min-width: 769px) and (max-width: 1366px) {
   html {
-    font-size: 110%;
+    font-size: clamp(0.625rem, 0.5rem + 0.6vw, 1rem);
+  }
+}
+
+@media (min-width: 1367px) and (max-width: 1920px) {
+  html {
+    font-size: clamp(0.75rem, 0.6rem + 0.5vw, 1.125rem);
+  }
+}
+
+@media (min-width: 1921px) and (max-width: 2560px) {
+  html {
+    font-size: clamp(1rem, 0.8rem + 0.4vw, 1.25rem);
+  }
+}
+
+/* Large TV screens (4K and above) */
+@media (min-width: 2561px) {
+  html {
+    font-size: clamp(1.125rem, 1rem + 0.3vw, 1.5rem);
+  }
+}
+
+/* Ultra-wide and very large displays */
+@media (min-width: 3840px) {
+  html {
+    font-size: clamp(1.25rem, 1.1rem + 0.2vw, 1.75rem);
   }
 }

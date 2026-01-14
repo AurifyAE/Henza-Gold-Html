@@ -10,6 +10,7 @@ import { useSpotRate } from "@/context/SpotRateContext";
 import MarketVideoCard from "../MarketVideoCard/MarketVideoCard";
 import CommodityPriceCard from "../CommodityPriceCard/CommodityPriceCard";
 import MetalPriceList from "../MetalPriceList/MetalPriceList";
+import { getSocketTransports, isTVBrowser } from "@/utils/browserDetection";
 
 const MainScreen = () => {
   // ============================================================================
@@ -108,23 +109,38 @@ const MainScreen = () => {
   // ============================================================================
   useEffect(() => {
     const loadInitialData = async () => {
-      try {
-        const [spotRes, serverRes] = await Promise.all([
-          fetchSpotRates(adminId),
-          fetchServerURL(),
-        ]);
+      let retryCount = 0;
+      const maxRetries = isTVBrowser() ? 5 : 3;
+      const retryDelay = isTVBrowser() ? 2000 : 1000;
 
-        const info = spotRes.data.info;
+      const attemptLoad = async () => {
+        try {
+          const [spotRes, serverRes] = await Promise.all([
+            fetchSpotRates(adminId),
+            fetchServerURL(),
+          ]);
 
-        setCommodities(info.commodities || []);
-        setGoldBidSpread(info.goldBidSpread || 0);
-        setGoldAskSpread(info.goldAskSpread || 0);
-        setSilverBidSpread(info.silverBidSpread || 0);
-        setSilverAskSpread(info.silverAskSpread || 0);
-        setServerURL(serverRes.data.info.serverURL);
-      } catch (error) {
-        console.error("Initial load failed", error);
-      }
+          const info = spotRes.data.info;
+
+          setCommodities(info.commodities || []);
+          setGoldBidSpread(info.goldBidSpread || 0);
+          setGoldAskSpread(info.goldAskSpread || 0);
+          setSilverBidSpread(info.silverBidSpread || 0);
+          setSilverAskSpread(info.silverAskSpread || 0);
+          setServerURL(serverRes.data.info.serverURL);
+        } catch (error) {
+          console.error(`Initial load failed (attempt ${retryCount + 1}/${maxRetries})`, error);
+          
+          if (retryCount < maxRetries) {
+            retryCount++;
+            setTimeout(attemptLoad, retryDelay);
+          } else {
+            console.error("Max retries reached. Failed to load initial data.");
+          }
+        }
+      };
+
+      attemptLoad();
     };
 
     loadInitialData();
@@ -136,16 +152,37 @@ const MainScreen = () => {
   useEffect(() => {
     if (!serverURL) return;
 
+    const transports = getSocketTransports();
+    const isTV = isTVBrowser();
+
     const socket = io(serverURL, {
-      transports: ["websocket"],
+      transports: transports,
       withCredentials: true,
       query: {
         secret: process.env.NEXT_PUBLIC_SOCKET_SECRET_KEY,
       },
+      // TV browsers may need longer timeouts
+      timeout: isTV ? 20000 : 10000,
+      reconnection: true,
+      reconnectionDelay: isTV ? 2000 : 1000,
+      reconnectionDelayMax: isTV ? 10000 : 5000,
+      reconnectionAttempts: isTV ? 10 : 5,
+      forceNew: false,
     });
 
     socket.on("connect", () => {
+      console.log("Socket connected with transport:", socket.io.engine.transport.name);
       socket.emit("request-data", ["GOLD", "SILVER"]);
+    });
+
+    socket.on("connect_error", (error) => {
+      console.error("Socket connection error:", error);
+      // For TV browsers, try to reconnect with polling only
+      if (isTV && socket.io.engine?.transport?.name !== 'polling') {
+        socket.io.opts.transports = ['polling'];
+        socket.disconnect();
+        socket.connect();
+      }
     });
 
     socket.on("market-data", (data) => {
@@ -155,7 +192,23 @@ const MainScreen = () => {
       }));
     });
 
-    return () => socket.disconnect();
+    socket.on("disconnect", (reason) => {
+      console.log("Socket disconnected:", reason);
+    });
+
+    socket.on("reconnect", (attemptNumber) => {
+      console.log("Socket reconnected after", attemptNumber, "attempts");
+      socket.emit("request-data", ["GOLD", "SILVER"]);
+    });
+
+    return () => {
+      socket.off("connect");
+      socket.off("connect_error");
+      socket.off("market-data");
+      socket.off("disconnect");
+      socket.off("reconnect");
+      socket.disconnect();
+    };
   }, [serverURL]);
 
   // ============================================================================
@@ -185,14 +238,49 @@ const MainScreen = () => {
   // ============================================================================
   useEffect(() => {
     const fetchMarketNews = async () => {
-      try {
-        const res = await fetch("/api/market-news");
-        const data = await res.json();
-        setNews(data.headlines || []);
-      } catch (error) {
-        console.error("Failed to fetch market news:", error);
-        setNews(["Failed to load news"]);
-      }
+      let retryCount = 0;
+      const maxRetries = isTVBrowser() ? 3 : 2;
+      const retryDelay = isTVBrowser() ? 2000 : 1000;
+
+      const attemptFetch = async () => {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), isTVBrowser() ? 15000 : 10000);
+
+          const res = await fetch("/api/market-news", {
+            signal: controller.signal,
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
+          });
+
+          clearTimeout(timeoutId);
+
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+
+          const data = await res.json();
+          setNews(data.headlines || []);
+        } catch (error) {
+          if (error.name === 'AbortError') {
+            console.error("Market news fetch timeout");
+          } else {
+            console.error(`Failed to fetch market news (attempt ${retryCount + 1}/${maxRetries}):`, error);
+          }
+
+          if (retryCount < maxRetries) {
+            retryCount++;
+            setTimeout(attemptFetch, retryDelay);
+          } else {
+            console.error("Max retries reached. Failed to fetch market news.");
+            setNews(["Market updates loading..."]);
+          }
+        }
+      };
+
+      attemptFetch();
     };
 
     fetchMarketNews();
