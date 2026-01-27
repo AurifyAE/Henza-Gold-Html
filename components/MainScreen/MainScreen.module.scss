@@ -1,67 +1,73 @@
 .mainscreen_Section {
-    // width: 468px;
-    // height: 625px;
-    width: 972;
-    height: 1248px;
+    width: 50.6vw;        // ~972px on 1920px screen
+    height: 65vw;         // ~1248px relative scaling
     margin: auto;
     overflow: hidden;
     position: relative;
-    padding: clamp(1rem, 1.5vw, 1.5rem);
+    padding: 1.2vw;
 }
+
+/* ================= VIDEO ================= */
 
 .video_sec {
     position: absolute;
-    top: 0;
-
-    left: 0;
+    inset: 0;
     z-index: 0;
-    height: 100%;
-    width: 100%;
 
     video {
+        width: 100%;
+        height: 100%;
         object-fit: cover;
-        height: inherit;
     }
 }
 
+/* ================= BODY ================= */
+
 .mainscreen_body {
     width: 100%;
+    height: 100%;
     position: relative;
     z-index: 1;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    gap: clamp(0.5rem, 0.8vw, 1rem);
-    height: 100%;
+    gap: 0.8vw;
 }
 
+/* ================= LOGO ================= */
+
 .logo {
-    height: fit-content;
     width: 30%;
-    aspect-ratio: 1/1;
+    aspect-ratio: 1 / 1;
     display: flex;
     align-items: center;
     justify-content: center;
     background-color: black;
-    padding: clamp(1rem, 2vw, 1.75rem);
+    padding: 1.5vw;
 
     img {
-        object-fit: contain;
-        width: clamp(3rem, 8vw, 6.25rem);
+        width: 6vw;
         height: auto;
+        object-fit: contain;
     }
 }
 
+/* ================= TABLE ================= */
+
 .table_sec {
-    width: calc(100% - 30% - clamp(0.5rem, 0.8vw, 1rem));
-    height: fit-content;
+    width: calc(100% - 30% - 0.8vw);
+    height: auto;
 }
+
+/* ================= COMMODITY ================= */
 
 .commodity_sec {
     width: auto;
     min-width: 80%;
-    height: fit-content;
+    height: auto;
 }
+
+/* ================= FOOTER ================= */
 
 .footer_body {
     margin-top: auto;
@@ -71,10 +77,14 @@
     align-items: flex-end;
 }
 
+/* ================= YOUTUBE ================= */
+
 .youtube_sec {
-    height: clamp(8rem, 18vw, 250px);
     width: 50%;
+    height: 10vw;
 }
+
+/* ================= SPONSOR ================= */
 
 .sponsor_logo {
     width: 35%;
