@@ -116,7 +116,7 @@ const ErrorPage = () => {
         /* Logo */
         .ep-logo {
           display: block;
-          height: 48px;
+          height: 80px;
           width: auto;
           opacity: 0.7;
           filter: brightness(0) invert(1);
