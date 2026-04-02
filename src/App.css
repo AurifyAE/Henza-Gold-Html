@@ -1,0 +1,79 @@
+body {
+  background-color: #140B10;
+  background-size: cover;
+  height: 100vh;
+  padding: "50px 50px";
+}
+
+#root {
+  margin: 0 auto;
+  text-align: center;
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+/* DeviceRestriction.css */
+
+/* Hide the content for mobile and tablet devices */
+.restriction-message {
+  display: none;
+  text-align: center;
+  margin: auto;
+  padding: 20px;
+  font-size: 18px;
+  color: #ff0000;
+  /* Red color for visibility */
+  background-color: #ffffff;
+  /* White background */
+  border: 2px solid #ff0000;
+  /* Red border */
+}
+
+/* Display the restriction message on mobile and tablet devices */
+@media (max-width: 1024px) {
+  .content {
+    display: none;
+  }
+
+  .restriction-message {
+    display: block;
+  }
+}
+
+.background_lines {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+  /* opacity: 0.05; */
+
+  img {
+    width: 100%;
+    height: 100%;
+  }
+}
