@@ -2,8 +2,6 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Grid, Paper, Typography, Box, useMediaQuery } from "@mui/material";
 import SpotRate from "../components/SpotRate";
 import CommodityTable from "../components/CommodityTable";
-import NewsTicker from "../components/News";
-// import backgroundImage from "/images/background.svg";
 import backgroundVideo from "/videos/background.mp4";
 
 import {
@@ -15,8 +13,6 @@ import {
 import io from "socket.io-client";
 import { useSpotRate } from "../context/SpotRateContext";
 import mainLogo from "/images/logo.svg";
-import WorldClockHorizontal from "../components/WorldClock";
-import SystemClock from "../components/SystemClock";
 import YoutubeVideo from "../components/YoutubeVideo";
 import PoweredByAurify from "../components/PoweredByAurify";
 
